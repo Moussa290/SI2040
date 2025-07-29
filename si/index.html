@@ -1,0 +1,573 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simandou IA - Assistant Citoyen</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script type="text/javascript" src="https://me.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=FqNZW1DhJpNcuJVCkxAaB4auQIUzPtVl5v5Y6la3ImCUZvJzH9xcbVsuSJ1onxwvivjKqYsEM09Kf0I_rbOBtg" charset="UTF-8"></script><style>
+        :root {
+            --primary: #1d6d3d;
+            --primary-light: #289e4d;
+            --primary-lighter: #e6f7ec;
+            --secondary: #10B981;
+            --dark: #1F2937;
+            --light: #F9FAFB;
+            --gray: #6B7280;
+            --gray-light: #f3f4f6;
+            --success: #10B981;
+            --danger: #EF4444;
+            --warning: #F59E0B;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f5f7fa;
+            color: var(--dark);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            margin: 0 auto;
+            background: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Bannière de bienvenue */
+        .welcome-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 1;
+            transition: all 0.5s ease;
+        }
+        
+        .welcome-banner.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .welcome-content {
+            background: white;
+            border-radius: 16px;
+            padding: 2.5rem;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transform: translateY(0);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: slideUp 0.8s ease-out;
+        }
+        
+        .welcome-banner.hidden .welcome-content {
+            transform: translateY(100px);
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .welcome-content h2 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+        
+        .welcome-content p {
+            color: var(--gray);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        
+        .welcome-button {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 0.75rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(29, 109, 61, 0.3);
+        }
+        
+        .welcome-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(29, 109, 61, 0.4);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+            position: relative;
+        }
+        
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--primary-light), var(--secondary), var(--warning));
+            animation: gradientAnimation 8s ease infinite;
+            background-size: 300% 300%;
+        }
+        
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .logo-img {
+            height: 40px;
+            width: auto;
+            border-radius: 8px;
+            background: white;
+            padding: 3px;
+        }
+        
+        .logo-text {
+            font-weight: 600;
+            font-size: 1.25rem;
+        }
+        
+        .logo-subtext {
+            font-size: 0.75rem;
+            opacity: 0.9;
+            margin-top: 0.1rem;
+        }
+        
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            background-color: var(--gray-light);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(29, 109, 61, 0.05) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(245, 158, 11, 0.05) 0%, transparent 20%);
+        }
+        
+        .message {
+            max-width: 85%;
+            padding: 1rem 1.25rem;
+            border-radius: 1rem;
+            line-height: 1.5;
+            position: relative;
+            animation: fadeIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            transform-origin: bottom;
+            transition: all 0.3s ease;
+        }
+        
+        .message:hover {
+            transform: scale(1.02);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        
+        .user-message {
+            align-self: flex-end;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            border-bottom-right-radius: 0.25rem;
+            border-top-left-radius: 1rem;
+        }
+        
+        .bot-message {
+            align-self: flex-start;
+            background: white;
+            color: var(--dark);
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+            border-bottom-left-radius: 0.25rem;
+            border-top-right-radius: 1rem;
+        }
+        
+        .bot-message p {
+            margin-bottom: 0.75rem;
+        }
+        
+        .bot-message strong {
+            color: var(--primary);
+        }
+        
+        .bot-message em {
+            color: var(--gray);
+        }
+        
+        .bot-message ul, .bot-message ol {
+            padding-left: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .bot-message li {
+            margin-bottom: 0.5rem;
+            position: relative;
+        }
+        
+        .bot-message li::before {
+            content: '';
+            position: absolute;
+            left: -15px;
+            top: 9px;
+            width: 8px;
+            height: 8px;
+            background: var(--primary);
+            border-radius: 50%;
+        }
+        
+        .fact-box {
+            background-color: rgba(29, 109, 61, 0.08);
+            border-left: 4px solid var(--primary);
+            padding: 1rem;
+            border-radius: 0 8px 8px 0;
+            margin: 1rem 0;
+            animation: pulseBackground 3s infinite;
+        }
+        
+        @keyframes pulseBackground {
+            0% { background-color: rgba(29, 109, 61, 0.08); }
+            50% { background-color: rgba(29, 109, 61, 0.12); }
+            100% { background-color: rgba(29, 109, 61, 0.08); }
+        }
+        
+        .fact-box h3 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .input-container {
+            padding: 1rem;
+            background-color: white;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            display: flex;
+            gap: 0.75rem;
+            position: relative;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.03);
+        }
+        
+        .input-field {
+            flex: 1;
+            padding: 0.9rem 1rem;
+            border: 2px solid #dfe1e5;
+            border-radius: 1.5rem;
+            font-family: inherit;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s;
+            padding-right: 3.5rem;
+            background: white;
+            box-shadow: 0 1px 6px rgba(32, 33, 36, 0.08);
+        }
+        
+        .input-field:focus {
+            border-color: var(--primary);
+            box-shadow: 0 1px 10px rgba(29, 109, 61, 0.25);
+        }
+        
+        .send-button {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            border: none;
+            border-radius: 1.5rem;
+            padding: 0 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            box-shadow: 0 2px 8px rgba(29, 109, 61, 0.3);
+        }
+        
+        .send-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(29, 109, 61, 0.4);
+        }
+        
+        .send-button:disabled {
+            background: #dadce0;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .typing-indicator {
+            display: flex;
+            padding: 1rem 1.25rem;
+            align-self: flex-start;
+            gap: 0.5rem;
+            align-items: center;
+            color: var(--gray);
+            font-size: 0.9rem;
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            animation: fadeIn 0.3s;
+        }
+        
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--primary);
+            border-radius: 50%;
+            animation: typingAnimation 1.4s infinite ease-in-out;
+        }
+        
+        .typing-dot:nth-child(1) {
+            animation-delay: 0s;
+        }
+        
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes typingAnimation {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-5px); }
+        }
+        
+        .welcome-message {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: var(--gray);
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            max-width: 600px;
+            margin: 0 auto;
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .welcome-message h3 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+            justify-content: center;
+        }
+        
+        .suggestion-chip {
+            background-color: white;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            border-radius: 1.5rem;
+            padding: 0.75rem 1.25rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            font-weight: 500;
+        }
+        
+        .suggestion-chip:hover {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(29, 109, 61, 0.2);
+        }
+        
+        .mic-button {
+            position: absolute;
+            right: 5.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--gray);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .mic-button:hover {
+            color: var(--primary);
+            background: rgba(29, 109, 61, 0.1);
+        }
+        
+        .mic-button.listening {
+            color: white;
+            background: var(--danger);
+            animation: pulse 1.5s infinite;
+        }
+        
+        .audio-button {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: rgba(29, 109, 61, 0.1);
+            border: none;
+            color: var(--primary);
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .audio-button:hover {
+            background: rgba(29, 109, 61, 0.2);
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        
+        .message-timestamp {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            margin-top: 0.3rem;
+            text-align: right;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                height: 100vh;
+                border-radius: 0;
+            }
+            
+            .message {
+                max-width: 90%;
+            }
+            
+            .input-field {
+                padding: 0.8rem 1rem;
+                padding-right: 3rem;
+            }
+            
+            .mic-button {
+                right: 4.5rem;
+            }
+            
+            .welcome-content {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Bannière de bienvenue -->
+    <div class="welcome-banner" id="welcomeBanner">
+        <div class="welcome-content">
+            <h2>Bienvenue sur Simandou IA</h2>
+            <p>Une intelligence artificielle prête à répondre à toutes vos questions sur le projet Simandou en Guinée.</p>
+            <button class="welcome-button" id="welcomeButton">D'accord</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <div> 
+                    <img src="photo/Simandou2040.jpg" alt="Logo Simandou" class="logo-img">
+                    <div class="logo-text">Simandou IA</div>
+                    <div class="logo-subtext">Votre assistant citoyen pour le projet Simandou</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="chat-container" id="chatContainer">
+            <div class="welcome-message">
+                <h3>Bienvenue sur Simandou IA</h3>
+                <p>Je suis votre assistant virtuel pour tout savoir sur le Projet Simandou. Posez-moi vos questions sur ce projet stratégique pour la Guinée !</p>
+                
+                <div class="suggestions">
+                    <div class="suggestion-chip" onclick="sendSuggestion(this)">C'est quoi le projet Simandou ?</div>
+                    <div class="suggestion-chip" onclick="sendSuggestion(this)">Qui finance le programme Simandou ?</div>
+                    <div class="suggestion-chip" onclick="sendSuggestion(this)">Quels bénéfices pour la Guinée ?</div>
+                    <div class="suggestion-chip" onclick="sendSuggestion(this)">Quelles mesures environnementales ?</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="input-container">
+            <input type="text" class="input-field" id="userInput" placeholder="Posez votre question sur Simandou..." onkeypress="handleKeyPress(event)">
+            <button class="mic-button" id="micButton" title="Parler">
+                <i class="fas fa-microphone"></i>
+            </button>
+            <button class="send-button" id="sendButton" onclick="sendMessage()">
+                <i class="fas fa-paper-plane"></i> Envoyer
+            </button>
+        </div>
+    </div>
+<script src="script .js"></script>
+</body>
+</html>
